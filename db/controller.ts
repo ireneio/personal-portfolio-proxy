@@ -1,8 +1,9 @@
-import { client, TABLE } from './init.ts'
+import { client, TABLE, User } from './init.ts'
 
 export const addUser = async (token: string): Promise<any> => {
+  const user = new User(token)
   let result = await client.execute(`INSERT INTO ${TABLE.USER}(token) values(?)`, [
-    token,
+    user.token,
   ])
   console.log('[DB] Inserted: ' + result)
   return result

@@ -1,11 +1,11 @@
 import { Client } from "https://deno.land/x/mysql/mod.ts"
 
-export interface User {
-  id: number,
-  token?: string
-}
-
 const DATABASE = 'jwt_auth'
+
+export interface User {
+  id?: number,
+  token: string
+}
 
 export const TABLE = {
 	USER: "user"
