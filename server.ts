@@ -258,7 +258,7 @@ async function initHttpServer(): Promise<void> {
 
   app.use(router.routes())
   app.use(router.allowedMethods())
-  await app.listen({ HTTP_PORT })
+  await app.listen({ port: HTTP_PORT })
   console.log('Listening on port ', HTTP_PORT)
 }
 
