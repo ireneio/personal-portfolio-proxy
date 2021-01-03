@@ -7,15 +7,17 @@ let interval: any
 const wss = new WebSocketServer(WS_SERVER_PORT)
 wss.on('connection', function (ws: WebSocket) {
   ws.on('message', function (message: string) {
-    console.log(message)
+    console.log('[WS Server] Message Received: ' + message)
     ws.send(message)
   })
 
   interval = setInterval(() => {
     ws.send(JSON.stringify(data))
+    console.log('[WS Server] Data sent: ' + JSON.stringify(data))
   }, 1000)
 
   ws.on('close', function(ws: WebSocket) {
     interval = null
+    console.log('[WS Server] Coneection closed.')
   })
 })
