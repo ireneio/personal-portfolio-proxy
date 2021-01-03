@@ -4,6 +4,9 @@ import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
 import { run as initDb } from './db/init.ts'
 
+const isUseAuth = false
+const isUseWs = false
+
 const API_URL: string = 'http://localhost:9001'
 const CORS_URL: string = 'http://localhost:3000'
 export const WS_ENDPONT: string = 'ws://127.0.0.1:8080'
@@ -264,10 +267,14 @@ async function initHttpServer(): Promise<void> {
 
 async function initApp(): Promise<boolean> {
   try {
-    await initDb()
+    if(isUseAuth) {
+      await initDb()
+    }
+    if(isUseWs) {
+      initWsServer()
+      initWsClient()
+    }
     await initHttpServer()
-    initWsServer()
-    initWsClient()
     return true
   } catch(e) {
     console.log('[App] Initialization Error: ' + e.message)
