@@ -12,20 +12,7 @@ const HTTP_PORT: number = 8080
 const JWT_SECRET: string = 'secret'
 const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
 
-async function initApp(): Promise<boolean> {
-  try {
-    await initDb()
-    await initHttpServer()
-    initWsServer()
-    initWsClient()
-    return true
-  } catch(e) {
-    console.log('[App] Initialization Error: ' + e.message)
-    return false
-  }
-}
-
-async function initHttpServer() {
+async function initHttpServer(): Promise<void> {
   const app = new Application()
   const router = new Router()
 
@@ -273,6 +260,19 @@ async function initHttpServer() {
   app.use(router.allowedMethods())
   await app.listen({ HTTP_PORT })
   console.log('Listening on port ', HTTP_PORT)
+}
+
+async function initApp(): Promise<boolean> {
+  try {
+    await initDb()
+    await initHttpServer()
+    initWsServer()
+    initWsClient()
+    return true
+  } catch(e) {
+    console.log('[App] Initialization Error: ' + e.message)
+    return false
+  }
 }
 
 async function init() {
