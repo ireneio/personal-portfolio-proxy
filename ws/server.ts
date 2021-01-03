@@ -5,8 +5,8 @@ import { WS_SERVER_PORT } from '../server.ts'
 let interval: any
 
 const wss = new WebSocketServer(WS_SERVER_PORT)
-wss.on("connection", function (ws: WebSocket) {
-  ws.on("message", function (message: string) {
+wss.on('connection', function (ws: WebSocket) {
+  ws.on('message', function (message: string) {
     console.log(message)
     ws.send(message)
   })
@@ -14,4 +14,8 @@ wss.on("connection", function (ws: WebSocket) {
   interval = setInterval(() => {
     ws.send(JSON.stringify(data))
   }, 1000)
+
+  ws.on('close', function(ws: WebSocket) {
+    interval = null
+  })
 })
