@@ -3,13 +3,13 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
 
-const API_URL = 'http://localhost:9001'
-const CORS_URL = 'http://localhost:3000'
-export const WS_ENDPONT = 'ws://127.0.0.1:8080'
-export const WS_SERVER_PORT = 8080
+const API_URL: string = 'http://localhost:9001'
+const CORS_URL: string = 'http://localhost:3000'
+export const WS_ENDPONT: string = 'ws://127.0.0.1:8080'
+export const WS_SERVER_PORT: number = 8080
 const HTTP_PORT: number = 8080
-const JWT_SECRET = 'secret'
-const JWT_CONTENT = { source: 'proxy-server-deno' }
+const JWT_SECRET: string = 'secret'
+const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
 
 const app = new Application()
 
