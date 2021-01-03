@@ -3,7 +3,7 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
 import { run as initDb } from './db/init.ts'
-import { init } from "./ws/server.ts"
+import { init } from "./ws/server"
 
 const API_URL: string = 'http://localhost:9001'
 const CORS_URL: string = 'http://localhost:3000'
@@ -16,9 +16,9 @@ const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
 async function initApp(): Promise<boolean> {
   try {
     await initDb()
-    initWsClient()
-    initWsServer()
     await initHttpServer()
+    initWsServer()
+    initWsClient()
     return true
   } catch(e) {
     console.log('[App] Initialization Error: ' + e.message)
