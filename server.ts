@@ -12,10 +12,16 @@ const HTTP_PORT: number = 8080
 const JWT_SECRET: string = 'secret'
 const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
 
-async function initApp() {
-  await initDb()
-  initWsClient()
-  initWsServer()
+async function initApp(): Promise<boolean> {
+  try {
+    await initDb()
+    initWsClient()
+    initWsServer()
+    return true
+  } catch(e) {
+    console.log('[App] Initialization Error: ' + e.message)
+    return false
+  }
 }
 
 await initApp()
