@@ -3,7 +3,7 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
 import { run as initDb } from './db/init.ts'
-import { init } from "./ws/server"
+import { init } from "./ws/server.ts"
 
 const API_URL: string = 'http://localhost:9001'
 const CORS_URL: string = 'http://localhost:3000'
