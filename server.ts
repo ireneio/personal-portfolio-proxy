@@ -2,6 +2,7 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 // import { create, verify } from "https://deno.land/x/djwt@$VERSION/mod.ts"
 import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
+import { run as initDb } from './db/init.ts'
 
 const API_URL: string = 'http://localhost:9001'
 const CORS_URL: string = 'http://localhost:3000'
@@ -10,6 +11,14 @@ export const WS_SERVER_PORT: number = 8080
 const HTTP_PORT: number = 8080
 const JWT_SECRET: string = 'secret'
 const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
+
+async function initApp() {
+  await initDb()
+  initWsClient()
+  initWsServer()
+}
+
+await initApp()
 
 const app = new Application()
 
@@ -232,7 +241,7 @@ class IncomingRequestProcessor {
 
 const router = new Router()
 
-// send request
+// [api] send request
 router.post('/api', async ({ request, response }: { request: any, response: any }) => {
   const processor = new IncomingRequestProcessor()
   response.body = await processor.initApiRequest(request)
@@ -250,16 +259,13 @@ router.post('/auth', async ({ request, response }: { request: any, response: any
   // response.body = await processor.initAuthVerificationRequest(request)
 })
 
-// check server health
+// [server] check server health
 router.get('/health', ({ response } : { request: any, response: any }) => {
   response.body = new HttpResponse({ status: 200, message: 'Server Running!' })
 })
 
 app.use(router.routes())
 app.use(router.allowedMethods())
-
-initWsClient()
-initWsServer()
 
 console.log('Listening on port ', HTTP_PORT)
 await app.listen({ HTTP_PORT })
