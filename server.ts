@@ -1,5 +1,7 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 // import { create, verify } from "https://deno.land/x/djwt@$VERSION/mod.ts"
+import { init as initWsServer } from './ws/server.ts'
+import { init as initWsClient } from './ws/client.ts'
 
 const API_URL = 'http://localhost:9001'
 const CORS_URL = 'http://localhost:3000'
@@ -255,6 +257,9 @@ router.get('/health', ({ response } : { request: any, response: any }) => {
 
 app.use(router.routes())
 app.use(router.allowedMethods())
+
+initWsClient()
+initWsServer()
 
 console.log('Listening on port ', HTTP_PORT)
 await app.listen({ HTTP_PORT })
