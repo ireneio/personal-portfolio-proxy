@@ -3,11 +3,13 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts"
 
 const API_URL = 'http://localhost:9001'
 const CORS_URL = 'http://localhost:3000'
+export const WS_ENDPONT = 'ws://127.0.0.1:8080'
+export const WS_SERVER_PORT = 8080
+const HTTP_PORT: number = 8080
 const JWT_SECRET = 'secret'
 const JWT_CONTENT = { source: 'proxy-server-deno' }
 
 const app = new Application()
-const port: number = 8080
 
 // Logger
 app.use(async(ctx: any, next: Function) => {
@@ -254,5 +256,5 @@ router.get('/health', ({ response } : { request: any, response: any }) => {
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-console.log('Listening on port ', port)
-await app.listen({ port })
+console.log('Listening on port ', HTTP_PORT)
+await app.listen({ HTTP_PORT })
