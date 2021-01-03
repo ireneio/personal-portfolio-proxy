@@ -19,8 +19,8 @@ app.use(async(ctx: any, next: Function) => {
 // Set CORS Headers
 app.use(async(ctx: any, next: Function) => {
   ctx.response.headers.set('Access-Control-Allow-Origin', CORS_URL)
-  ctx.response.headers.set('Access-Control-Allow-Origin', 'POST, GET, OPTIONS')
-  ctx.response.headers.set('Access-Control-Allow-Origin', ['Authorization', 'Content-Type'])
+  ctx.response.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+  ctx.response.headers.set('Access-Control-Allow-Headers', ['Authorization', 'Content-Type'])
   await next()
 })
 
