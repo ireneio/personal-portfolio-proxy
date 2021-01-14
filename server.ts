@@ -1,6 +1,5 @@
 import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts"
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
-import { config, DotenvConfig } from "https://deno.land/x/dotenv/mod.ts";
 // import { create, verify } from "https://deno.land/x/djwt@$VERSION/mod.ts"
 
 import { init as initWsServer } from './ws/server.ts'
@@ -10,7 +9,12 @@ import { run as initDb } from './db/init.ts'
 const isUseAuth = false
 const isUseWs = false
 
-const { API_URL, CORS_URL, HTTP_PORT, WS_ENDPONT: WS_EP, WS_SERVER_PORT: WS_PORT }: DotenvConfig = config()
+const API_URL = Deno.env.get("API_URL") || 'https://ire1.blob.core.windows.net/personal-portfolio'
+const CORS_URL = Deno.env.get("CORS_URL") || '*'
+const HTTP_PORT = Deno.env.get("HTTP_PORT") || 8080
+const WS_EP = Deno.env.get("WS_EP") || 'ws://127.0.0.1:8080'
+const WS_PORT = Deno.env.get("WS_PORT") || 8080
+
 console.log('[env] API_URL: ' + API_URL)
 console.log('[env] CORS_URL: ' + CORS_URL)
 console.log('[env] HTTP_PORT: ' + HTTP_PORT)
@@ -321,9 +325,7 @@ async function initApp(): Promise<boolean> {
 async function init() {
   try {
     const initResult = await initApp()
-    if(initResult) {
-      console.log('[App] Server Initialization Success.')
-    } else {
+    if(!initResult) {
       throw new Error('Http Server Halted.')
     }
   } catch(e) {
@@ -332,3 +334,4 @@ async function init() {
 }
 
 await init()
+console.log('[App] Server Initialization Success.')

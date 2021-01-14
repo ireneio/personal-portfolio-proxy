@@ -1,0 +1,15 @@
+FROM hayd/alpine-deno:latest
+
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+COPY . .
+
+ENV API_URL=https://ire1.blob.core.windows.net/personal-portfolio
+ENV CORS_URL=https://personal-portfolio.azurewebsites.net
+ENV HTTP_PORT=8080
+ENV WS_ENDPONT=ws://127.0.0.1:8080
+ENV WS_SERVER_PORT=8080
+
+EXPOSE 8080
+
+CMD [ "deno", "run", "-A", "./server.ts" ]
