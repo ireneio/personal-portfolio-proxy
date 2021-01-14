@@ -1,5 +1,8 @@
-import { Application, Router } from "https://deno.land/x/oak/mod.ts"
+import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts"
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import { config, DotenvConfig } from "https://deno.land/x/dotenv/mod.ts";
 // import { create, verify } from "https://deno.land/x/djwt@$VERSION/mod.ts"
+
 import { init as initWsServer } from './ws/server.ts'
 import { init as initWsClient } from './ws/client.ts'
 import { run as initDb } from './db/init.ts'
@@ -7,11 +10,16 @@ import { run as initDb } from './db/init.ts'
 const isUseAuth = false
 const isUseWs = false
 
-const API_URL: string = 'http://localhost:9001'
-const CORS_URL: string = 'http://localhost:3000'
-export const WS_ENDPONT: string = 'ws://127.0.0.1:8080'
-export const WS_SERVER_PORT: number = 8080
-const HTTP_PORT: number = 8080
+const { API_URL, CORS_URL, HTTP_PORT, WS_ENDPONT: WS_EP, WS_SERVER_PORT: WS_PORT }: DotenvConfig = config()
+console.log('[env] API_URL: ' + API_URL)
+console.log('[env] CORS_URL: ' + CORS_URL)
+console.log('[env] HTTP_PORT: ' + HTTP_PORT)
+console.log('[env] WS_ENDPONT: ' + WS_EP)
+console.log('[env] WS_SERVER_PORT: ' + WS_PORT)
+
+export const WS_ENDPONT: string = WS_EP
+export const WS_SERVER_PORT: number = Number(WS_PORT)
+
 const JWT_SECRET: string = 'secret'
 const JWT_CONTENT: { source: string } = { source: 'proxy-server-deno' }
 
@@ -20,24 +28,30 @@ async function initHttpServer(): Promise<void> {
   const router = new Router()
 
   // Logger
-  app.use(async(ctx: any, next: Function) => {
+  app.use(async(ctx: Context, next: Function) => {
     await next()
     const rt = ctx.response.headers.get("X-Response-Time")
     console.log(`${ctx.request.method} ${ctx.request.url} - ${rt}`)
   })
 
   // Set CORS Headers
-  app.use(async(ctx: any, next: Function) => {
-    ctx.response.headers.set('Access-Control-Allow-Origin', CORS_URL)
-    ctx.response.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-    ctx.response.headers.set('Access-Control-Allow-Headers', ['Authorization', 'Content-Type'])
-    await next()
-  })
+  app.use(
+    oakCors({
+      origin: CORS_URL,
+      optionsSuccessStatus: 200
+    })
+  )
+
+  // fetch('https://ire1.blob.core.windows.net/personal-portfolio/static/data.json').then((res: any) => {
+  //   return res.json()
+  // }).then((json: any) => {
+  //   console.log(json)
+  // })
 
   interface ResponseBody {
     status?: number, 
     message?: string,
-    data?: JSON
+    data?: any
   }
 
   class HttpResponse {
@@ -69,7 +83,7 @@ async function initHttpServer(): Promise<void> {
     method: string, 
     endpoint: string, 
     data: any, 
-    contentType: string
+    contentType?: string
   }
 
   class HttpRequest {
@@ -102,7 +116,9 @@ async function initHttpServer(): Promise<void> {
       const { authorization, method, contentType, acceptLanguage, timezone } = request
 
       this.config.method = method
-      this.headers.append('content-type', contentType)
+      if(contentType) {
+        this.headers.append('content-type', contentType)
+      }
       if(authorization) {
         this.headers.append('authorization', authorization)
       }
@@ -116,9 +132,11 @@ async function initHttpServer(): Promise<void> {
     }
 
     private mapData(): FormData | string {
-      const { contentType, data } = this.request
-
-      if(contentType === 'application/json') {
+      const { contentType, data, method } = this.request
+      
+      if(method === 'get' || method === 'GET') {
+        return ''
+      } else if(contentType === 'application/json') {
         return JSON.stringify(data)
       } else if(contentType === 'multipart/formdata') {
         const formData = new FormData()
@@ -133,11 +151,11 @@ async function initHttpServer(): Promise<void> {
 
     private async sendRequest(): Promise<JSON> {
       try {
-        const httpRequest = await fetch(`${this.API_URL}${this.endpoint}`, this.config)
-        const httpResponse = httpRequest.json()
-        return httpResponse
+        const response: Response = await fetch(`${this.API_URL}${this.endpoint}`)
+        const json = await response.json()
+        return json
       } catch(e) {
-        throw new HttpResponse({ status: 500, message: e.message })
+        throw new HttpResponse({ status: e.status, message: e.message })
       }
     }
 
@@ -186,17 +204,35 @@ async function initHttpServer(): Promise<void> {
     }
 
     public async initApiRequest(incRequest: any): Promise<HttpResponse> {
-      let values: RequestBody
-      const type = await this.getRequestType(incRequest)
-      const isValidRequestType = this.verifyRequestType(type)
-    
-      if(isValidRequestType) {
-        values = await this.getRequestBody(incRequest)
+      const values: RequestBody = await this.getRequestBody(incRequest)
+      
+      console.log(values)
+      
+      if(values.method === 'get' || values.method === 'GET') {
         const request = new HttpRequest(values, API_URL)
         return await request.init()
       } else {
-        return new HttpResponse({ status: 400, message: 'Body Format to the Proxy Server Is Not Accepted.' })
+        const type = await this.getRequestType(incRequest)
+        const isValidRequestType = this.verifyRequestType(type)
+        if(isValidRequestType) {
+          const request = new HttpRequest(values, API_URL)
+          return await request.init()
+        } else {
+          return new HttpResponse({ status: 400, message: 'Body Format to the Proxy Server Is Not Accepted.' })
+        }
       }
+
+      // let values: RequestBody
+      // const type = await this.getRequestType(incRequest)
+      // const isValidRequestType = this.verifyRequestType(type)
+    
+      // if(isValidRequestType) {
+      //   values = await this.getRequestBody(incRequest)
+      //   const request = new HttpRequest(values, API_URL)
+      //   return await request.init()
+      // } else {
+      //   return new HttpResponse({ status: 400, message: 'Body Format to the Proxy Server Is Not Accepted.' })
+      // }
     }
 
     // public async initAuthRequest(): Promise<HttpResponse> {
@@ -261,7 +297,7 @@ async function initHttpServer(): Promise<void> {
 
   app.use(router.routes())
   app.use(router.allowedMethods())
-  await app.listen({ port: HTTP_PORT })
+  await app.listen({ port: Number(HTTP_PORT) })
   console.log('Listening on port ', HTTP_PORT)
 }
 
